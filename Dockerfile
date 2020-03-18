@@ -1,4 +1,4 @@
-FROM php:7.3-fpm
+FROM php:7.4-fpm
 
 ENV UID=1000
 ENV GID=1000
@@ -20,12 +20,21 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libcurl4-openssl-dev \
     pkg-config \
-    libssl-dev
-
-# Install extensions
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl
-RUN docker-php-ext-configure gd --with-gd --with-jpeg-dir --with-png-dir --with-zlib-dir
-RUN docker-php-ext-install gd
+    libssl-dev \
+    libmcrypt-dev \
+    zlib1g-dev \
+    libxml2-dev \
+    libonig-dev \
+    graphviz \
+    && docker-php-ext-configure gd --with-jpeg --with-freetype \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install mbstring \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-install exif \
+    && docker-php-ext-install pcntl \
+    && docker-php-ext-install zip \
+    && docker-php-source delete
 
 # Install Mongo DB
 RUN pecl install mongodb \
@@ -45,7 +54,7 @@ RUN /usr/local/bin/composer global require hirak/prestissimo --no-plugins --no-s
 
 # Install mongodb tools for mongodump
 RUN cd /tmp && \
-    curl https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.0.10.tgz > mongodb.tar.gz && \
+    curl https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.1.6.tgz > mongodb.tar.gz && \
     mkdir -p /etc/mongodb && tar xvzf mongodb.tar.gz -C /etc/mongodb --strip-components 1 && \
     rm -rf /tmp/mongodb.tar.gz
 
