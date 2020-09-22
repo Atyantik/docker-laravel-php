@@ -1,47 +1,46 @@
-FROM php:7.4-fpm
+FROM php:7.4.10-fpm-alpine3.12
 
 ENV UID=1000
 ENV GID=1000
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    default-mysql-client \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
+RUN apk add --no-cache \
+  $PHPIZE_DEPS \ 
+  freetype \
+  libpng \
+  libjpeg-turbo \
+  freetype-dev \
+  libpng-dev \
+  libjpeg-turbo-dev \
+  libc-dev \
+  jpegoptim optipng pngquant gifsicle \
+  unzip \
+  curl \
+  libzip-dev \
+  curl-dev \
+  pkgconfig \
+  libressl-dev \
+  libmcrypt-dev \
+  zlib-dev \ 
+  libxml2-dev \
+  oniguruma-dev \
+  graphviz \
+  && docker-php-ext-configure gd \
+    --with-freetype=/usr/include/ \
+    --with-jpeg=/usr/include/ && \
+  NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
+  docker-php-ext-install -j${NPROC} gd \
+    pdo_mysql \
+    mbstring \
+    mysqli \
+    exif \
     zip \
-    jpegoptim optipng pngquant gifsicle \
-    vim \
-    unzip \
-    git \
-    curl \
-    libzip-dev \
-    libcurl4-openssl-dev \
-    pkg-config \
-    libssl-dev \
-    libmcrypt-dev \
-    zlib1g-dev \
-    libxml2-dev \
-    libonig-dev \
-    graphviz \
-    && docker-php-ext-configure gd --with-jpeg --with-freetype \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install pdo_mysql \
-    && docker-php-ext-install mbstring \
-    && docker-php-ext-install mysqli \
-    && docker-php-ext-install exif \
-    && docker-php-ext-install pcntl \
-    && docker-php-ext-install zip \
-    && docker-php-source delete
+  && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
 
 # Install Mongo DB
 RUN pecl install mongodb \
-    &&  echo "extension=mongodb.so" > /usr/local/etc/php/conf.d/mongo.ini
+    && docker-php-ext-enable mongodb
 
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN rm -rf /var/lib/apt/lists/*
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -60,4 +59,5 @@ RUN cd /tmp && \
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
+
 CMD ["php-fpm"]
