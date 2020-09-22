@@ -41,6 +41,9 @@ RUN apk add --no-cache \
 RUN pecl install mongodb \
     && docker-php-ext-enable mongodb
 
+RUN echo '' | pecl install redis
+RUN docker-php-ext-enable redis
+
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install composer
