@@ -1,10 +1,7 @@
-FROM php:7.4.10-fpm-alpine3.12
-
-ENV UID=1000
-ENV GID=1000
+FROM php:7.4.12-fpm-alpine3.12
 
 RUN apk add --no-cache \
-  $PHPIZE_DEPS \ 
+  $PHPIZE_DEPS \
   freetype \
   libpng \
   libjpeg-turbo \
@@ -20,7 +17,7 @@ RUN apk add --no-cache \
   pkgconfig \
   libressl-dev \
   libmcrypt-dev \
-  zlib-dev \ 
+  zlib-dev \
   libxml2-dev \
   oniguruma-dev \
   graphviz \
@@ -47,19 +44,18 @@ RUN docker-php-ext-enable redis
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN   
 
 # Optimize composer ot use only https protocol from packagist
 RUN /usr/local/bin/composer config --global repo.packagist composer https://packagist.org
-
-# Install hirak/prestissimo for parallel download
-RUN /usr/local/bin/composer global require hirak/prestissimo --no-plugins --no-scripts
 
 # Install mongodb tools for mongodump
 RUN cd /tmp && \
     curl https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-4.1.6.tgz > mongodb.tar.gz && \
     mkdir -p /etc/mongodb && tar xvzf mongodb.tar.gz -C /etc/mongodb --strip-components 1 && \
     rm -rf /tmp/mongodb.tar.gz
+
+RUN mkdir -p /.composer/ && chmod -R 777 /.composer/
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
