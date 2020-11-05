@@ -44,7 +44,7 @@ RUN docker-php-ext-enable redis
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install composer
-RUN   
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Optimize composer ot use only https protocol from packagist
 RUN /usr/local/bin/composer config --global repo.packagist composer https://packagist.org
