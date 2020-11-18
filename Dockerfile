@@ -26,6 +26,7 @@ RUN apk add --no-cache \
     --with-jpeg=/usr/include/ && \
   NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
   docker-php-ext-install -j${NPROC} gd \
+    xdebug \
     pcntl \
     pdo_mysql \
     mbstring \
