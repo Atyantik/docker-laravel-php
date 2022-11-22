@@ -1,4 +1,4 @@
-FROM php:7.4.12-fpm-alpine3.12
+FROM php:8.1-fpm-alpine
 
 RUN apk add --no-cache \
   $PHPIZE_DEPS \
@@ -10,6 +10,7 @@ RUN apk add --no-cache \
   libjpeg-turbo-dev \
   libc-dev \
   jpegoptim optipng pngquant gifsicle \
+  postgresql-dev \
   unzip \
   curl \
   libzip-dev \
@@ -24,11 +25,10 @@ RUN apk add --no-cache \
   && docker-php-ext-configure gd \
     --with-freetype=/usr/include/ \
     --with-jpeg=/usr/include/ && \
-  NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
-  docker-php-ext-install -j${NPROC} gd \
-    xdebug \
+  docker-php-ext-install gd \
     pcntl \
     pdo_mysql \
+    pdo_pgsql \
     mbstring \
     mysqli \
     exif \
@@ -41,6 +41,8 @@ RUN pecl install mongodb \
 
 RUN echo '' | pecl install redis
 RUN docker-php-ext-enable redis
+
+RUN docker-php-ext-install opcache
 
 RUN rm -rf /var/lib/apt/lists/*
 
