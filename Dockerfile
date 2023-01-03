@@ -33,13 +33,14 @@ RUN apk add --no-cache \
     mysqli \
     exif \
     zip \
+    intl \
   && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
 
 # Install Mongo DB
 RUN pecl install mongodb \
     && docker-php-ext-enable mongodb
 
-RUN echo '' | pecl install redis
+RUN pecl install redis
 RUN docker-php-ext-enable redis
 
 RUN docker-php-ext-install opcache
