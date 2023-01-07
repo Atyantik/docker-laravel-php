@@ -16,7 +16,7 @@ RUN apk add --no-cache \
   libzip-dev \
   curl-dev \
   pkgconfig \
-  libressl-dev \
+  openssl-dev \
   libmcrypt-dev \
   zlib-dev \
   libxml2-dev \
