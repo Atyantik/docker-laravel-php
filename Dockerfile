@@ -1,26 +1,23 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-fpm-bullseye
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y \
   $PHPIZE_DEPS \
-  freetype \
-  libpng \
-  libjpeg-turbo \
-  freetype-dev \
+  cmake libfreetype6-dev libfontconfig1-dev xclip \
   libpng-dev \
-  libjpeg-turbo-dev \
+  libjpeg-dev \
   libc-dev \
   jpegoptim optipng pngquant gifsicle \
-  postgresql-dev \
   unzip \
   curl \
   libzip-dev \
-  curl-dev \
-  pkgconfig \
-  openssl-dev \
+  libpq-dev \
+  pkg-config \
+  libssl-dev \
   libmcrypt-dev \
-  zlib-dev \
+  zlib1g zlib1g-dev \
   libxml2-dev \
-  oniguruma-dev \
+  libonig-dev \
   graphviz \
   && docker-php-ext-configure gd \
     --with-freetype=/usr/include/ \
@@ -33,8 +30,7 @@ RUN apk add --no-cache \
     mysqli \
     exif \
     zip \
-    intl \
-  && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
+    intl
 
 # Install Mongo DB
 RUN pecl install mongodb \
