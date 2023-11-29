@@ -1,46 +1,45 @@
-FROM php:7.4.12-fpm-alpine3.12
+FROM php:8.3-fpm-bullseye
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y \
   $PHPIZE_DEPS \
-  freetype \
-  libpng \
-  libjpeg-turbo \
-  freetype-dev \
+  cmake libfreetype6-dev libfontconfig1-dev xclip \
   libpng-dev \
-  libjpeg-turbo-dev \
+  libjpeg-dev \
   libc-dev \
   jpegoptim optipng pngquant gifsicle \
   unzip \
   curl \
   libzip-dev \
-  curl-dev \
-  pkgconfig \
-  libressl-dev \
+  libpq-dev \
+  pkg-config \
+  libssl-dev \
   libmcrypt-dev \
-  zlib-dev \
+  zlib1g zlib1g-dev \
   libxml2-dev \
-  oniguruma-dev \
+  libonig-dev \
   graphviz \
   && docker-php-ext-configure gd \
     --with-freetype=/usr/include/ \
     --with-jpeg=/usr/include/ && \
-  NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
-  docker-php-ext-install -j${NPROC} gd \
-    xdebug \
+  docker-php-ext-install gd \
     pcntl \
     pdo_mysql \
+    pdo_pgsql \
     mbstring \
     mysqli \
     exif \
     zip \
-  && apk del --no-cache freetype-dev libpng-dev libjpeg-turbo-dev
+    intl
 
 # Install Mongo DB
 RUN pecl install mongodb \
     && docker-php-ext-enable mongodb
 
-RUN echo '' | pecl install redis
+RUN pecl install redis
 RUN docker-php-ext-enable redis
+
+RUN docker-php-ext-install opcache
 
 RUN rm -rf /var/lib/apt/lists/*
 
