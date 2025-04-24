@@ -1,0 +1,207 @@
+# Laravel Local Development Environment
+# This docker-compose configuration sets up a complete development stack for Laravel applications
+
+services:
+    #Database Service - PostgreSQL for persistent data storage
+    db:
+        image: postgres:17 # Using PostgreSQL v17
+        container_name: laravel_db
+        restart: unless-stopped # Automatically restart container unless manually stopped
+        tty: true
+        volumes:
+            - ./dev-data/postgres:/var/lib/postgresql/data # Persistent storage for database
+        ports:
+            - "5432:5432" # Map host port to container port
+        expose:
+            # Opens port 5432 on the container for internal network access
+            - "5432"
+        environment:
+            # Database configuration with default fallbacks
+            POSTGRES_DB: ${DB_DATABASE:-laravel}
+            POSTGRES_USER: ${DB_USERNAME:-laravel}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-laravel}
+        labels:
+            org.opencontainers.image.title: "postgres"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+    #PHP Service - Main Laravel application running on PHP-FPM
+    app:
+        build:
+            context: .
+            dockerfile: ./docker/local/php/Dockerfile
+        container_name: laravel_app
+        restart: unless-stopped
+        tty: true
+        working_dir: /var/www/app # Set working directory for the container
+        expose:
+            - "9000" # Expose PHP-FPM port internally
+        ports:
+            - "5173:5173" # For Vite/Laravel hot module replacement
+        command: ["php-fpm"] # Run PHP-FPM process
+        volumes:
+            - ./:/var/www/app # Mount project directory for live code updates
+        networks:
+            - laravel_network
+        labels:
+            org.opencontainers.image.title: "laravel"
+            org.opencontainers.image.environment: "dev"
+        depends_on:
+            - db # Ensure database is running before app starts
+            - redis # Ensure cache service is available
+            - mail # Ensure mail testing service is available
+            - memcached # Ensure memcached service is available
+            - s3 # Ensure s3 service is available
+    # Mail Service - Local email testing service with web interface
+    mail:
+        image: axllent/mailpit:v1.24 # Email testing service
+        container_name: laravel_mailpit
+        restart: unless-stopped
+        volumes:
+            - ./dev-data/mailpit:/data # Persistent storage for emails
+        ports:
+            - 8025:8025 # Web interface port for viewing emails
+            - 1025:1025 # SMTP port for sending emails
+        environment:
+            MP_MAX_MESSAGES: 5000 # Maximum number of stored messages
+            MP_DATABASE: /data/mailpit.db # Database file for storing messages
+            MP_SMTP_AUTH_ACCEPT_ANY: 1 # Accept any SMTP auth
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1 # Allow insecure connections for development
+        labels:
+            org.opencontainers.image.title: "mailpit"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+    # PostgreSQL Admin Tool - Web interface for database management
+    pgadmin:
+        image: dpage/pgadmin4:9 # PostgreSQL admin web interface
+        container_name: laravel_pgadmin
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "5051:80" # Web interface port
+        depends_on:
+            - db # Ensure database is running before pgAdmin starts
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-laravel@yopmail.com} # Default login email
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-password} # Default login password
+        labels:
+            org.opencontainers.image.title: "pgadmin"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+    # Redis service - Cache and queue service
+    redis:
+        image: "redis:7" # Redis v7
+        container_name: laravel_redis
+        restart: unless-stopped
+        tty: true
+        environment:
+            ALLOW_EMPTY_PASSWORD: ${REDIS_ALLOW_EMPTY_PASSWORD:-"yes"} # Allow no password for local dev
+            REDIS_PASSWORD: ${REDIS_PASSWORD:-""} # Password for Redis connection
+        expose:
+            - "6379" # Expose Redis port internally
+        ports:
+            # <Port exposed> : < Redis Port running inside container>
+            - "6379:6379" # Different host port to avoid conflicts with local Redis
+        volumes:
+            - ./dev-data/redis:/data # Persistent storage for Redis data
+        labels:
+            org.opencontainers.image.title: "redis"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+    # Worker process manager - Manages Laravel queue workers and scheduled tasks
+    supervisor:
+        build:
+            context: .
+            dockerfile: ./docker/local/supervisor/Dockerfile
+        container_name: laravel_supervisor
+        restart: unless-stopped
+        tty: true
+        volumes:
+            - ./dev-data/composer-cache:/root/composer/ # Cache for composer packages
+            - ./dev-data/tinker:/.config:rw # Configuration for Laravel Tinker
+            - .:/var/www/app:rw # Mount project directory
+            - ./dev-data/storage:/var/www/storage:rw # Persistent storage for logs and caches
+        labels:
+            org.opencontainers.image.title: "supervisor"
+            org.opencontainers.image.environment: "dev"
+        depends_on:
+            - app # Ensure Laravel app is running
+            - db # Ensure database is available for workers
+            - redis # Ensure queue backend is available
+            - memcached # Ensure cache service is available
+            - mail # Ensure mail service is available for notifications
+        networks:
+            - laravel_network
+    # Nginx Web Server - Handles HTTP requests and serves static files
+    nginx:
+        build:
+            context: .
+            dockerfile: ./docker/local/nginx/Dockerfile
+        container_name: laravel_nginx
+        restart: unless-stopped
+        tty: true
+        expose:
+            - "80" # Expose HTTP port internally
+        ports:
+            - "3002:80" # Web server port mapping for browser access
+        volumes:
+            - .:/var/www/app:rw # Mount project directory for serving files
+        labels:
+            org.opencontainers.image.title: "nginx"
+            org.opencontainers.image.environment: "dev"
+        depends_on:
+            - app # Ensure PHP-FPM is running
+            - db # Ensure database is available
+            - redis # Ensure cache is available
+            - supervisor # Ensure background workers are running
+            - mail # Ensure mail service is available
+            - memcached # Ensure memcached service is available
+            - s3 # Ensure s3 service is available
+        networks:
+            - laravel_network
+    # Memcached Service - In-memory object caching system
+    memcached:
+        image: memcached:latest # Using latest Memcached
+        container_name: laravel_memcached
+        restart: unless-stopped
+        command:
+            - --conn-limit=1024 # Maximum simultaneous connections
+            - --memory-limit=256 # Memory limit in MB
+            - --threads=4 # Number of threads to use
+        ports:
+            - "11211:11211" # Memcached port mapping
+        expose:
+            - "11211" # Expose to internal network
+        volumes:
+            - ./dev-data/memcached:/data # Persistent storage if needed
+        labels:
+            org.opencontainers.image.title: "memcached"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+    # MinIO Service - Object storage server compatible with Amazon S3
+    s3:
+        image: minio/minio:latest
+        container_name: laravel_s3
+        restart: unless-stopped
+        ports:
+            - "5052:9000"     # MinIO API
+            - "5053:5053"     # MinIO Console
+        environment:
+            MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minioadmin}
+            MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
+        volumes:
+            - ./dev-data/minio:/data
+        command: server /data --console-address ":5053"
+        labels:
+            org.opencontainers.image.title: "minio"
+            org.opencontainers.image.environment: "dev"
+        networks:
+            - laravel_network
+# Docker Networks - Network configuration for container communication
+networks:
+    laravel_network:
+        driver: bridge # Standard bridge network for container communication

@@ -1,0 +1,175 @@
+# Laravel Staging Environment
+# This docker-compose configuration sets up a staging stack for Laravel applications
+
+services:
+  #Database Service - PostgreSQL for persistent data storage
+  db:
+    image: postgres:17
+    container_name: staging_laravel_db
+    restart: always
+    tty: true
+    volumes:
+      - ../staging-data/postgres:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-laravel}
+      POSTGRES_USER: ${DB_USERNAME:-laravel}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-laravel}
+    labels:
+      org.opencontainers.image.title: "postgres"
+      org.opencontainers.image.environment: "staging"
+    networks:
+      - staging_laravel_network
+
+  #PHP Service - Main Laravel application running on PHP-FPM
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/staging/php/Dockerfile
+    container_name: staging_laravel_app
+    restart: always
+    tty: true
+    working_dir: /var/www/app
+    expose:
+      - "9000"
+    command: ["php-fpm"]
+    networks:
+      - staging_laravel_network
+    volumes:
+      - staging_laravel_public:/var/www/app/public
+    labels:
+      org.opencontainers.image.title: "laravel"
+      org.opencontainers.image.environment: "staging"
+    depends_on:
+      - db
+      - redis
+      - memcached
+      - s3
+      - bootstrapper
+
+  # Redis service - Cache and queue service
+  redis:
+    image: "redis:7"
+    container_name: staging_laravel_redis
+    restart: always
+    tty: true
+    environment:
+      ALLOW_EMPTY_PASSWORD: "no"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-""}
+    expose:
+      - "6379"
+    volumes:
+      - ../staging-data/redis:/data
+    labels:
+      org.opencontainers.image.title: "redis"
+      org.opencontainers.image.environment: "staging"
+    networks:
+      - staging_laravel_network
+
+  # Worker process manager - Manages Laravel queue workers and scheduled tasks
+  supervisor:
+    build:
+      context: .
+      dockerfile: ./docker/staging/supervisor/Dockerfile
+    container_name: staging_laravel_supervisor
+    restart: always
+    tty: true
+    volumes:
+      - staging_laravel_public:/var/www/app/public
+      - ../staging-data/storage:/var/www/storage:rw
+    labels:
+      org.opencontainers.image.title: "supervisor"
+      org.opencontainers.image.environment: "staging"
+    depends_on:
+      - app
+      - db
+      - redis
+      - memcached
+      - s3
+    networks:
+      - staging_laravel_network
+
+  # Nginx Web Server - Handles HTTP requests and serves static files
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/staging/nginx/Dockerfile
+    container_name: staging_laravel_nginx
+    restart: always
+    tty: true
+    ports:
+      #            - "80:80"
+      - "3002:80"
+    #            - "443:443"
+    volumes:
+      - staging_laravel_public:/var/www/app/public
+      - /etc/nginx/ssl:/etc/nginx/ssl
+    labels:
+      org.opencontainers.image.title: "nginx"
+      org.opencontainers.image.environment: "staging"
+    depends_on:
+      - app
+      - db
+      - redis
+      - supervisor
+      - memcached
+      - s3
+    networks:
+      - staging_laravel_network
+
+  # Memcached Service - In-memory object caching system
+  memcached:
+    image: memcached:latest
+    container_name: staging_laravel_memcached
+    restart: always
+    command:
+      - --conn-limit=1024
+      - --memory-limit=256
+      - --threads=4
+    expose:
+      - "11211"
+    volumes:
+      - ../staging-data/memcached:/data
+    labels:
+      org.opencontainers.image.title: "memcached"
+      org.opencontainers.image.environment: "staging"
+    networks:
+      - staging_laravel_network
+  s3:
+    image: minio/minio:latest
+    container_name: staging_laravel_s3
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
+    volumes:
+      - ../staging-data/minio:/data
+    command: server /data --console-address ":9001"
+    labels:
+      org.opencontainers.image.title: "minio"
+      org.opencontainers.image.environment: "staging"
+    networks:
+      - staging_laravel_network
+  bootstrapper:
+    image: busybox
+    container_name: staging_laravel_bootstrapper
+    volumes:
+      - ./public:/from
+      - staging_laravel_public:/to
+    command: sh -c "cp -r /from/* /to"
+    entrypoint: ["/bin/sh", "-c"]
+    restart: "no"
+    labels:
+      org.opencontainers.image.title: "bootstrapper"
+      org.opencontainers.image.environment: "staging"
+    networks:
+      - staging_laravel_network
+# Docker Networks - Network configuration for container communication
+networks:
+  staging_laravel_network:
+    driver: bridge
+
+# Global volumes configuration
+volumes:
+  staging_laravel_public:

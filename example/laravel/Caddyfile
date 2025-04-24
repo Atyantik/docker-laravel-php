@@ -1,0 +1,24 @@
+laravel.localhost {
+        reverse_proxy localhost:3002
+        tls internal
+}
+
+hmr.localhost {
+        reverse_proxy localhost:5173
+        tls internal
+}
+
+mail.localhost {
+        reverse_proxy localhost:8025
+        tls internal
+}
+
+storage.localhost {
+        reverse_proxy localhost:5053
+        tls internal
+}
+
+phpmyadmin.localhost {
+    reverse_proxy localhost:8080
+    tls internal
+}
