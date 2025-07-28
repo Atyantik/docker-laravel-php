@@ -17,6 +17,8 @@ COPY ./docker/staging/supervisor/supervisord.conf /etc/supervisord.conf
 
 COPY ./docker/staging/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
+COPY ./docker/staging/php/opcache.blacklist /usr/local/etc/php/opcache.blacklist
+
 COPY ./docker/staging/supervisor/conf.d /etc/supervisor/conf.d
 
 COPY ./docker/staging/supervisor/entrypoint.sh ./entrypoint.sh
