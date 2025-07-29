@@ -26,7 +26,9 @@ RUN apt-get update && apt-get upgrade -y && \
         libgmp-dev \
         libsqlite3-dev \
         postgresql-client \
-        graphviz && \
+        graphviz \
+        libmagickwand-dev \
+        imagemagick && \
     docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/ && \
     docker-php-ext-install \
         gd \
@@ -46,6 +48,7 @@ RUN apt-get update && apt-get upgrade -y && \
     pecl install memcached && docker-php-ext-enable memcached && \
     pecl install redis && docker-php-ext-enable redis && \
     pecl install apcu && docker-php-ext-enable apcu && \
+    pecl install imagick && docker-php-ext-enable imagick && \
     pecl install xdebug-3.4.0beta1 && docker-php-ext-enable xdebug && \
     echo "xdebug.mode=off" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
