@@ -45,6 +45,7 @@ Here’s a detailed list of pre-installed PHP extensions:
 | **mongodb**          | MongoDB database support                              | ✅      |
 | **gmp**              | Arbitrary precision arithmetic                        | ✅      |
 | **exif**             | Metadata handling for images                          | ✅      |
+| **imagick**          | ImageMagick support for advanced image processing     | ✅      |
 
 ---
 
