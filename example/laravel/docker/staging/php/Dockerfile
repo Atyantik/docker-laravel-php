@@ -11,6 +11,8 @@ COPY . /var/www/app
 
 COPY ./docker/staging/php/local.ini /usr/local/etc/php/conf.d/local.ini
 
+COPY ./docker/staging/php/opcache.blacklist /usr/local/etc/php/opcache.blacklist
+
 RUN mkdir /.config/ && chmod -R 777 /.config
 
 RUN chmod -R 777 bootstrap
