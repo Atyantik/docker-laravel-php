@@ -1,4 +1,6 @@
-FROM php:8.3-fpm-bullseye
+# Pinned to a patched release (CVE-2026-109618, CVE-2026-109619). The build fails if this tag does not exist.
+ARG PHP_VERSION=8.3.36
+FROM php:${PHP_VERSION}-fpm-bookworm
 
 # Install necessary libraries and PHP extensions
 RUN apt-get update && apt-get upgrade -y && \

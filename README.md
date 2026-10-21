@@ -2,7 +2,7 @@
 
 [![Docker Hub](https://img.shields.io/badge/Docker-Hub-blue)](https://hub.docker.com/repository/docker/atyantik/laravel-php)
 
-This repository provides a **custom PHP 8.3 Docker image** based on the Bullseye distribution, optimized for running Laravel applications. It includes pre-installed PHP extensions, tools, and multi-architecture support for **AMD64** and **ARM64**. 🚀
+This repository provides a **custom PHP 8.3 Docker image** based on the Bookworm distribution, optimized for running Laravel applications. It includes pre-installed PHP extensions, tools, and multi-architecture support for **AMD64** and **ARM64**. 🚀
 
 ---
 
@@ -65,14 +65,14 @@ Here’s a detailed list of pre-installed PHP extensions:
 This Docker image is available on [Docker Hub](https://hub.docker.com/repository/docker/atyantik/laravel-php). You can pull it directly or use it as a base image in your own Dockerfile:
 
 ```dockerfile
-FROM atyantik/laravel-php:8.3-bullseye
+FROM atyantik/laravel-php:8.3-bookworm
 ```
 
 ### Example: Running a Laravel Application
 
 1. Build your Laravel application image using this base image:
    ```dockerfile
-   FROM atyantik/laravel-php:8.3-bullseye
+   FROM atyantik/laravel-php:8.3-bookworm
 
    COPY . /var/www/html
    WORKDIR /var/www/html
@@ -101,26 +101,26 @@ Follow these steps to build the image yourself:
 
 3. **Build AMD64 Image**:
    ```bash
-   docker buildx build --platform="linux/amd64" -t atyantik/laravel-php:8.3-bullseye-amd64 .
+   docker buildx build --platform="linux/amd64" -t atyantik/laravel-php:8.3-bookworm-amd64 .
    ```
 
 4. **Build ARM64 Image**:
    ```bash
-   docker buildx build --platform="linux/arm64" -t atyantik/laravel-php:8.3-bullseye-arm64 .
+   docker buildx build --platform="linux/arm64" -t atyantik/laravel-php:8.3-bookworm-arm64 .
    ```
 
 5. **Push Images to Docker Hub**:
    ```bash
-   docker push atyantik/laravel-php:8.3-bullseye-amd64
-   docker push atyantik/laravel-php:8.3-bullseye-arm64
+   docker push atyantik/laravel-php:8.3-bookworm-amd64
+   docker push atyantik/laravel-php:8.3-bookworm-arm64
    ```
 
 6. **Create and Push a Manifest for Multi-Architecture**:
    ```bash
-   docker manifest create atyantik/laravel-php:8.3-bullseye \
-     atyantik/laravel-php:8.3-bullseye-amd64 \
-     atyantik/laravel-php:8.3-bullseye-arm64
-   docker manifest push atyantik/laravel-php:8.3-bullseye
+   docker manifest create atyantik/laravel-php:8.3-bookworm \
+     atyantik/laravel-php:8.3-bookworm-amd64 \
+     atyantik/laravel-php:8.3-bookworm-arm64
+   docker manifest push atyantik/laravel-php:8.3-bookworm
    ```
 
 ---
