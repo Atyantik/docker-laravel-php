@@ -1,5 +1,5 @@
 # Pinned to a patched release (CVE-2026-109618, CVE-2026-109619). The build fails if this tag does not exist.
-ARG PHP_VERSION=8.4.27
+ARG PHP_VERSION=8.5.12
 FROM php:${PHP_VERSION}-fpm-bookworm
 
 # Install necessary libraries and PHP extensions
@@ -44,8 +44,7 @@ RUN apt-get update && apt-get upgrade -y && \
         zip \
         intl \
         soap \
-        gmp \
-        opcache && \
+        gmp && \
     # PECL's download server returned HTTP 500 for mongodb on 2026-10-21, so take the
     # same release from the MongoDB GitHub project, pinned by SHA256. Retry the other
     # PECL downloads because they fail intermittently.
@@ -57,7 +56,7 @@ RUN apt-get update && apt-get upgrade -y && \
     pecl_retry redis && docker-php-ext-enable redis && \
     pecl_retry apcu && docker-php-ext-enable apcu && \
     pecl_retry imagick && docker-php-ext-enable imagick && \
-    pecl_retry xdebug-3.4.0beta1 && docker-php-ext-enable xdebug && \
+    pecl_retry xdebug-3.5.3 && docker-php-ext-enable xdebug && \
     echo "xdebug.mode=off" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     /usr/local/bin/composer config --global repo.packagist composer https://packagist.org && \

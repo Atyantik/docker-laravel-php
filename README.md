@@ -2,7 +2,7 @@
 
 [![Docker Hub](https://img.shields.io/badge/Docker-Hub-blue)](https://hub.docker.com/repository/docker/atyantik/laravel-php)
 
-This repository provides a **custom PHP 8.4 Docker image** based on the Bookworm distribution, optimized for running Laravel applications. It includes pre-installed PHP extensions, tools, and multi-architecture support for **AMD64** and **ARM64**. 🚀
+This repository provides a **custom PHP 8.5 Docker image** based on the Bookworm distribution, optimized for running Laravel applications. It includes pre-installed PHP extensions, tools, and multi-architecture support for **AMD64** and **ARM64**. 🚀
 
 ---
 
@@ -10,7 +10,7 @@ This repository provides a **custom PHP 8.4 Docker image** based on the Bookworm
 
 This Dockerfile is tailored for **Laravel** applications and includes the following features:
 
-1. **PHP 8.4** with FPM (FastCGI Process Manager).
+1. **PHP 8.5** with FPM (FastCGI Process Manager).
 2. ✅ **Pre-installed PHP Extensions**:
    - Essential extensions required by most Laravel applications.
    - See the [Extension Table](#php-extensions) below for a full list. 🧩
@@ -19,7 +19,7 @@ This Dockerfile is tailored for **Laravel** applications and includes the follow
    - **MongoDB Tools** (e.g., `mongodump`) for database backups and operations.
 4. ✅ **Xdebug**:
    - Included but disabled by default for production readiness.
-   - XDebug 3.4.0beta1 is used for compatibility with php 8.4
+   - Xdebug 3.5.3 is used for PHP 8.5 support
 5. ✅ **Multi-Architecture Builds**:
    - Supports both AMD64 (x86_64) and ARM64 (aarch64) architectures.
 
@@ -65,14 +65,14 @@ Here’s a detailed list of pre-installed PHP extensions:
 This Docker image is available on [Docker Hub](https://hub.docker.com/repository/docker/atyantik/laravel-php). You can pull it directly or use it as a base image in your own Dockerfile:
 
 ```dockerfile
-FROM atyantik/laravel-php:8.4-bookworm
+FROM atyantik/laravel-php:8.5-bookworm
 ```
 
 ### Example: Running a Laravel Application
 
 1. Build your Laravel application image using this base image:
    ```dockerfile
-   FROM atyantik/laravel-php:8.4-bookworm
+   FROM atyantik/laravel-php:8.5-bookworm
 
    COPY . /var/www/html
    WORKDIR /var/www/html
@@ -101,26 +101,26 @@ Follow these steps to build the image yourself:
 
 3. **Build AMD64 Image**:
    ```bash
-   docker buildx build --platform="linux/amd64" -t atyantik/laravel-php:8.4-bookworm-amd64 .
+   docker buildx build --platform="linux/amd64" -t atyantik/laravel-php:8.5-bookworm-amd64 .
    ```
 
 4. **Build ARM64 Image**:
    ```bash
-   docker buildx build --platform="linux/arm64" -t atyantik/laravel-php:8.4-bookworm-arm64 .
+   docker buildx build --platform="linux/arm64" -t atyantik/laravel-php:8.5-bookworm-arm64 .
    ```
 
 5. **Push Images to Docker Hub**:
    ```bash
-   docker push atyantik/laravel-php:8.4-bookworm-amd64
-   docker push atyantik/laravel-php:8.4-bookworm-arm64
+   docker push atyantik/laravel-php:8.5-bookworm-amd64
+   docker push atyantik/laravel-php:8.5-bookworm-arm64
    ```
 
 6. **Create and Push a Manifest for Multi-Architecture**:
    ```bash
-   docker manifest create atyantik/laravel-php:8.4-bookworm \
-     atyantik/laravel-php:8.4-bookworm-amd64 \
-     atyantik/laravel-php:8.4-bookworm-arm64
-   docker manifest push atyantik/laravel-php:8.4-bookworm
+   docker manifest create atyantik/laravel-php:8.5-bookworm \
+     atyantik/laravel-php:8.5-bookworm-amd64 \
+     atyantik/laravel-php:8.5-bookworm-arm64
+   docker manifest push atyantik/laravel-php:8.5-bookworm
    ```
 
 ---
