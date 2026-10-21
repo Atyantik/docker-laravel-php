@@ -36,10 +36,16 @@ RUN apt-get install -y \
     ftp
 
 # Install Mongo DB
-RUN pecl install mongodb \
+# PECL's download server returned HTTP 500 for mongodb on 2026-10-21, so take the
+# same release from the MongoDB GitHub project, pinned by SHA256.
+RUN curl -fsSL --retry 5 -o /tmp/mongodb-2.5.5.tgz https://github.com/mongodb/mongo-php-driver/releases/download/2.5.5/mongodb-2.5.5.tgz \
+    && echo "0eaf84ff709f73183d80597f31ff02937f6aefde01eb895a0aa19334a290cec0  /tmp/mongodb-2.5.5.tgz" | sha256sum -c - \
+    && pecl install /tmp/mongodb-2.5.5.tgz \
+    && rm /tmp/mongodb-2.5.5.tgz \
     && docker-php-ext-enable mongodb
 
-RUN pecl install redis
+# Retry because PECL downloads fail intermittently
+RUN for i in 1 2 3 4 5 6; do pecl install redis && break; [ "$i" = 6 ] && exit 1; sleep 15; done
 RUN docker-php-ext-enable redis
 
 RUN docker-php-ext-install opcache
