@@ -32,7 +32,8 @@ RUN apt-get install -y \
     mysqli \
     exif \
     zip \
-    intl
+    intl \
+    ftp
 
 # Install Mongo DB
 RUN pecl install mongodb \
