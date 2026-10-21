@@ -46,12 +46,18 @@ RUN apt-get update && apt-get upgrade -y && \
         soap \
         gmp \
         opcache && \
-    pecl install mongodb && docker-php-ext-enable mongodb && \
-    pecl install memcached && docker-php-ext-enable memcached && \
-    pecl install redis && docker-php-ext-enable redis && \
-    pecl install apcu && docker-php-ext-enable apcu && \
-    pecl install imagick && docker-php-ext-enable imagick && \
-    pecl install xdebug-3.4.0beta1 && docker-php-ext-enable xdebug && \
+    # PECL's download server returned HTTP 500 for mongodb on 2026-10-21, so take the
+    # same release from the MongoDB GitHub project, pinned by SHA256. Retry the other
+    # PECL downloads because they fail intermittently.
+    pecl_retry() { for i in 1 2 3 4 5 6; do pecl install "$1" && return 0; sleep 15; done; return 1; } && \
+    curl -fsSL --retry 5 -o /tmp/mongodb-2.5.5.tgz https://github.com/mongodb/mongo-php-driver/releases/download/2.5.5/mongodb-2.5.5.tgz && \
+    echo "0eaf84ff709f73183d80597f31ff02937f6aefde01eb895a0aa19334a290cec0  /tmp/mongodb-2.5.5.tgz" | sha256sum -c - && \
+    pecl install /tmp/mongodb-2.5.5.tgz && docker-php-ext-enable mongodb && \
+    pecl_retry memcached && docker-php-ext-enable memcached && \
+    pecl_retry redis && docker-php-ext-enable redis && \
+    pecl_retry apcu && docker-php-ext-enable apcu && \
+    pecl_retry imagick && docker-php-ext-enable imagick && \
+    pecl_retry xdebug-3.4.0beta1 && docker-php-ext-enable xdebug && \
     echo "xdebug.mode=off" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     /usr/local/bin/composer config --global repo.packagist composer https://packagist.org && \
