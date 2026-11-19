@@ -8,7 +8,7 @@ When PHP ships a security release, every tag of `atyantik/laravel-php` has to be
 | `php8.2-bookworm` | `8.2-bookworm`, `8.2-bullseye`, `8.2.<patch>-bookworm` | 12 |
 | `php8.3-bookworm` | `8.3-bookworm`, `8.3-bullseye`, `8.3.<patch>-bookworm` | 12 |
 | `php8.4-bookworm` | `8.4-bookworm`, `8.4-bullseye`, `8.4.<patch>-bookworm` | 12 |
-| `php8.5-bookworm` | `8.5-bookworm`, `8.5.<patch>-bookworm`, `latest` | 12 |
+| `php8.5-bookworm` | `8.5-bookworm`, `8.5.<patch>-bookworm`, `latest` (no `-bullseye` tag, on purpose) | 12 |
 
 - **`-bullseye` tags:** these have pointed at the bookworm image since Oct 2026. The official `php:*-bullseye` images stopped updating in Aug 2025.
 - **`<patch>-bookworm` tags:** immutable. Pin these in client Dockerfiles, so a bump shows in git.

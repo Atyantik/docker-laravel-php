@@ -16,9 +16,9 @@
 #     retrying up to 4 times because pecl.php.net often returns 500s
 #   - checks each image: PHP version, CPU arch, php-fpm -t, and that "php -m" matches the
 #     image currently published under <minor>-bookworm (no extension lost or gained)
-#   - pushes per-arch tags <minor>-bookworm-<arch> and <minor>-bullseye-<arch>
-#   - joins them into <minor>-bookworm, <minor>-bullseye (alias, also Debian 12) and the
-#     immutable <patch>-bookworm. With --latest also moves "latest".
+#   - pushes per-arch tags <minor>-bookworm-<arch> (and <minor>-bullseye-<arch> where that alias exists)
+#   - joins them into <minor>-bookworm, <minor>-bullseye (only if it already exists: 8.2 to 8.4,
+#     Debian 12 despite the name) and the immutable <patch>-bookworm. With --latest also moves "latest".
 #   - reads the manifest back from Docker Hub and runs a fresh amd64 pull
 #
 # Rollback: the previous digests are printed and saved to release-log/<patch>.txt. Re-point a tag with
@@ -94,18 +94,25 @@ for ARCH in arm64 amd64; do
 done
 
 # 6. Push per-arch tags, then join.
+# The -bullseye alias exists only for versions that once had a bullseye build (8.2 to 8.4).
+# Never create it for a newer version.
+BULLSEYE=""
+[ -n "$(hub_arches "$REPO" "$MINOR-bullseye")" ] && BULLSEYE=1
 for ARCH in arm64 amd64; do
-  docker tag "$REPO:$MINOR-bookworm-$ARCH" "$REPO:$MINOR-bullseye-$ARCH"
   docker push -q "$REPO:$MINOR-bookworm-$ARCH" >/dev/null
-  docker push -q "$REPO:$MINOR-bullseye-$ARCH" >/dev/null
+  if [ -n "$BULLSEYE" ]; then
+    docker tag "$REPO:$MINOR-bookworm-$ARCH" "$REPO:$MINOR-bullseye-$ARCH"
+    docker push -q "$REPO:$MINOR-bullseye-$ARCH" >/dev/null
+  fi
 done
-TAGS=(-t "$REPO:$MINOR-bookworm" -t "$REPO:$MINOR-bullseye" -t "$REPO:$PATCH-bookworm")
+TAGS=(-t "$REPO:$MINOR-bookworm" -t "$REPO:$PATCH-bookworm")
+[ -n "$BULLSEYE" ] && TAGS+=(-t "$REPO:$MINOR-bullseye")
 [ "$LATEST" = --latest ] && TAGS+=(-t "$REPO:latest")
 docker buildx imagetools create "${TAGS[@]}" "$REPO:$MINOR-bookworm-amd64" "$REPO:$MINOR-bookworm-arm64"
 log "published ${TAGS[*]//-t /}"
 
 # 7. Read back from Docker Hub.
-for t in "$MINOR-bookworm" "$MINOR-bullseye" "$PATCH-bookworm" ${LATEST:+latest}; do
+for t in "$MINOR-bookworm" ${BULLSEYE:+"$MINOR-bullseye"} "$PATCH-bookworm" ${LATEST:+latest}; do
   A=$(hub_arches "$REPO" "$t"); log "hub $t: $A  digest $(docker buildx imagetools inspect "$REPO:$t" --format '{{json .Manifest.Digest}}')"
   [[ "$A" == *amd64*arm64* ]] || { log "hub $t is missing an arch"; exit 1; }
 done

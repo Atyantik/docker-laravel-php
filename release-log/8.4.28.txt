@@ -1,0 +1,17 @@
+[17:05:48Z] release atyantik/laravel-php 8.4.28 from branch php8.4-bookworm
+[17:05:51Z] source origin/php8.4-bookworm at 43331e2
+[17:05:53Z] official php:8.4.28-fpm-bookworm has amd64 and arm64
+[17:05:53Z] Docker free disk 38 GB
+[17:05:57Z] previous 8.4-bookworm: "sha256:0b652f495a5afe3a68dc4dd60df591d8a165efdf659b3ceb1f71c4bc986826d2"
+[17:06:01Z] previous 8.4-bullseye: "sha256:0b652f495a5afe3a68dc4dd60df591d8a165efdf659b3ceb1f71c4bc986826d2"
+[17:06:05Z] previous latest: "sha256:12e2e4612d72da3fe97244d70195f12c857ee57299c929b25734227b00635298"
+[17:06:05Z] build arm64, try 1
+[17:14:04Z] arm64 ok: PHP 8.4.28 on aarch64, php-fpm -t ok, 52 modules, same as published
+[17:14:04Z] build amd64, try 1
+[17:49:51Z] amd64 ok: PHP 8.4.28 on x86_64, php-fpm -t ok, 52 modules, same as published
+[17:51:47Z] published -t atyantik/laravel-php:8.4-bookworm -t atyantik/laravel-php:8.4-bullseye -t atyantik/laravel-php:8.4.28-bookworm
+[17:51:53Z] hub 8.4-bookworm: amd64 arm64  digest "sha256:51742c8f46b968a5129f45359e7447aaa0e5ea5899dff24a6aeaadee73feb1fa"
+[17:51:59Z] hub 8.4-bullseye: amd64 arm64  digest "sha256:51742c8f46b968a5129f45359e7447aaa0e5ea5899dff24a6aeaadee73feb1fa"
+[17:52:05Z] hub 8.4.28-bookworm: amd64 arm64  digest "sha256:51742c8f46b968a5129f45359e7447aaa0e5ea5899dff24a6aeaadee73feb1fa"
+[17:52:08Z] fresh amd64 pull: 8.4.28 x86_64
+[17:52:08Z] done 8.4.28
