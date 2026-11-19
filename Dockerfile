@@ -1,5 +1,5 @@
-# Pinned to a patched release (CVE-2026-109618, CVE-2026-109619). The build fails if this tag does not exist.
-ARG PHP_VERSION=8.3.36
+# Pinned to a patched release (Nov 2026 PHP security release, including CVE-2026-115560). The build fails if this tag does not exist.
+ARG PHP_VERSION=8.3.37
 FROM php:${PHP_VERSION}-fpm-bookworm
 
 # Install necessary libraries and PHP extensions
